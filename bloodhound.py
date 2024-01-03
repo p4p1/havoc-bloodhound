@@ -26,10 +26,12 @@ while not os.path.exists(current_dir + install_path):
     havocui.inputdialog("Install path", "Please enter your install path here for the module to work correctly:")
 
 # Global variables
+search_dialog = havocui.Dialog("Search", True, 600, 150)
 bloodhound_settings_pane = havocui.Widget("BloodHound Settings", True)
 sharphound_settings_pane = havocui.Widget("SharpHound Settings", True)
 bloodhound_log_panel = havocui.Logger("BloodHound Logs")
 conf_path = current_dir + install_path + "settings.json"
+search_value = ""
 settings = {
     "server_url": "http://localhost:8080",
     "api-key": "Enter key here",
@@ -170,6 +172,7 @@ def open_sharphound_settings():
     sharphound_settings_pane.addButton("Save", save_settings)
     sharphound_settings_pane.setSmallTab()
 
+# The function for the log pannel
 def open_logs():
     data = call_api("GET", "/api/v2/audit")
     if data.status_code == 200:
@@ -178,6 +181,36 @@ def open_logs():
         for entry in parsed_data["data"]["logs"]:
             bloodhound_log_panel.addText("[<span style='color:#71e0cb'>%s</span>] by <span style='color:#ff6347'>%s</span> -> %s" % (entry["created_at"], entry["actor_name"], entry["action"]))
         bloodhound_log_panel.setBottomTab()
+
+search_result_values = {}
+def search_handler(selected):
+    return selected
+search_result = havocui.Tree("Search Result", search_handler)
+def get_search_value(text):
+    global search_value
+    search_value = text
+def run_search():
+    search_dialog.close()
+    global search_value
+    global search_result_values
+    unique_types = []
+    data = call_api("GET", "/api/v2/search?q=%s" % search_value)
+    if data.status_code == 200:
+        search_result.addRow("------Results for %s-----" % search_value)
+        data = data.json()
+        unique_types = list({item["type"] for item in data["data"]})
+        for value in unique_types:
+            matching_elements = [item["name"] for item in data['data'] if item['type'] == value]
+            search_result_values[value] = matching_elements
+            search_result.addRow(value, *matching_elements)
+        search_result.setBottomTab()
+# The widget for opening search
+def open_search():
+    search_dialog.clear()
+    search_dialog.addLabel("<h2 style='color:#bd93f9'>Search for an element:</h2>")
+    search_dialog.addLineedit("Type in the name of an element..", get_search_value)
+    search_dialog.addButton("Search", run_search)
+    search_dialog.exec()
 
 # A function that will display information about comupters, users and gpos to be coded in the future
 def open_inspect():
@@ -236,4 +269,4 @@ else:
 havoc.RegisterModule("bloodhound","A command to manage bloodhound related things","","","","")
 havoc.RegisterCommand( run_collector, "bloodhound", "collect", "Run the Bloodhound collector on the target machine (aka: SharpHound)", 0, "", "" )
 havoc.RegisterCommand( upload_collected, "bloodhound", "upload", "Upload the zip file to the api", 0, "[local_download_path] [remote_zip_file_path]", "/data/ c:\\file\\number_BloodHound.zip" )
-havocui.createtab("Bloodhound", "SharpHound", open_sharphound_settings, "Logs", open_logs, "Settings", open_bloodhound_settings)
+havocui.createtab("Bloodhound", "Search", open_search, "SharpHound", open_sharphound_settings, "Logs", open_logs, "Settings", open_bloodhound_settings)
