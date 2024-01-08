@@ -54,3 +54,8 @@ Note that the arguments of the collector are defined inside of the SharpHound me
 ```
 
 ![image](https://github.com/p4p1/havoc-bloodhound/assets/19672114/2b6aae53-a6b1-41f4-a87c-740a8360ccea)
+
+
+## Todo:
+ - [ ] Add a unconstrained delegation command search (if user is NTAuthority search from machine else search from exploited user
+ - [ ] Path finding, same functionality as search but takes current user / computer and target searched item
