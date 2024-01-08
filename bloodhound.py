@@ -32,7 +32,7 @@ sharphound_settings_pane = havocui.Widget("SharpHound Settings", True)
 bloodhound_log_panel = havocui.Logger("BloodHound Logs")
 conf_path = current_dir + install_path + "settings.json"
 search_value = ""
-settings = {
+settings_bloodhound = {
     "server_url": "http://localhost:8080",
     "api-key": "Enter key here",
     "api-id": "Enter id here",
@@ -66,7 +66,7 @@ def unzip_folder(zip_file_path, extract_to):
 def call_api(method, uri, body=None):
     # Function taken from:
     # https://support.bloodhoundenterprise.io/hc/en-us/articles/11311053342619-Working-with-the-BloodHound-API
-    digester = hmac.new(settings["api-key"].encode(), None, hashlib.sha256)
+    digester = hmac.new(settings_bloodhound["api-key"].encode(), None, hashlib.sha256)
     digester.update(f"{method}{uri}".encode())
     digester = hmac.new(digester.digest(), None, hashlib.sha256)
     datetime_formatted = datetime.datetime.now().astimezone().isoformat("T")
@@ -76,10 +76,10 @@ def call_api(method, uri, body=None):
         digester.update(body.encode())
     return requests.request(
         method=method,
-        url=settings["server_url"]+uri,
+        url=settings_bloodhound["server_url"]+uri,
         headers={
             "User-Agent": "bh-havoc-client",
-            "Authorization": "bhesignature %s" % settings["api-id"],
+            "Authorization": "bhesignature %s" % settings_bloodhound["api-id"],
             "RequestDate": datetime_formatted,
             "Signature": base64.b64encode(digester.digest()),
             "Content-Type": "application/json",
@@ -89,86 +89,86 @@ def call_api(method, uri, body=None):
 
 # Function to build the sharphound command
 def build_sharphound_command():
-    global settings
-    cmd = "dotnet inline-execute " + settings["sharphound_path"]
-    if settings["sharphound"]["args"]:
-        if settings["sharphound"]["domain"] != "template.domain":
-            cmd += "--domain %s " % settings["sharphound"]["domain"]
-        if settings["sharphound"]["search_forest"] == True:
+    global settings_bloodhound
+    cmd = "dotnet inline-execute " + settings_bloodhound["sharphound_path"]
+    if settings_bloodhound["sharphound"]["args"]:
+        if settings_bloodhound["sharphound"]["domain"] != "template.domain":
+            cmd += "--domain %s " % settings_bloodhound["sharphound"]["domain"]
+        if settings_bloodhound["sharphound"]["search_forest"] == True:
             cmd += "--searchforest "
     return cmd
 
 # save the settings
 def save_settings():
-    global settings
+    global settings_bloodhound
     global conf_path
     with open(conf_path, "w") as fp:
         # save the config
-        json.dump(settings, fp)
+        json.dump(settings_bloodhound, fp)
 
 # Capture the data for the bloodhound settings panel
 def get_server_url(text):
-    global settings
-    settings["server_url"] = text
+    global settings_bloodhound
+    settings_bloodhound["server_url"] = text
 def get_api_key(text):
-    global settings
-    settings["api-key"] = text
+    global settings_bloodhound
+    settings_bloodhound["api-key"] = text
 def get_api_id(text):
-    global settings
-    settings["api-id"] = text
+    global settings_bloodhound
+    settings_bloodhound["api-id"] = text
 # the actual bloodhound settings panel
 def open_bloodhound_settings():
-    global settings
+    global settings_bloodhound
     bloodhound_settings_pane.clear()
     bloodhound_settings_pane.addLabel("<h3 style='color:#bd93f9'>BloodHound Status:</h3>")
-    if is_website_online(settings["server_url"]):
+    if is_website_online(settings_bloodhound["server_url"]):
         bloodhound_settings_pane.addLabel("status: <span style='color:#00ff00'>online</span>")
     else:
         bloodhound_settings_pane.addLabel("status: <span style='color:#ff6347'>offline</span>")
     bloodhound_settings_pane.addLabel("<h3 style='color:#bd93f9'>BloodHound Settings:</h3>")
     bloodhound_settings_pane.addLabel("<span style='color:#71e0cb'>BloodHound URL:</span>")
-    bloodhound_settings_pane.addLineedit(settings["server_url"], get_server_url)
+    bloodhound_settings_pane.addLineedit(settings_bloodhound["server_url"], get_server_url)
     bloodhound_settings_pane.addLabel("<span style='color:#71e0cb'>API key:</span>")
-    bloodhound_settings_pane.addLineedit(settings["api-key"], get_api_key)
+    bloodhound_settings_pane.addLineedit(settings_bloodhound["api-key"], get_api_key)
     bloodhound_settings_pane.addLabel("<span style='color:#71e0cb'>API id:</span>")
-    bloodhound_settings_pane.addLineedit(settings["api-id"], get_api_id)
+    bloodhound_settings_pane.addLineedit(settings_bloodhound["api-id"], get_api_id)
     bloodhound_settings_pane.addButton("Save", save_settings)
     bloodhound_settings_pane.setSmallTab()
 
 # Capture the sharphound arguments data
 def get_arguments():
-    global settings
-    settings["sharphound"]["args"] = not settings["sharphound"]["args"]
+    global settings_bloodhound
+    settings_bloodhound["sharphound"]["args"] = not settings_bloodhound["sharphound"]["args"]
 def get_domain_sh(text):
-    global settings
-    settings["sharphound"]["domain"] = text
+    global settings_bloodhound
+    settings_bloodhound["sharphound"]["domain"] = text
 def get_search_forest():
-    global settings
-    settings["sharphound"]["search_forest"] = not settings["sharphound"]["search_forest"]
+    global settings_bloodhound
+    settings_bloodhound["sharphound"]["search_forest"] = not settings_bloodhound["sharphound"]["search_forest"]
 def change_sharphound_path():
-    global settings
+    global settings_bloodhound
     new_path = havocui.openfiledialog("select file").decode('ascii')
     old_path = ""
-    if os.path.exists(settings["sharphound_path"]):
-        old_path = "<span style='color:#00ff00'>%s</span>" % settings["sharphound_path"]
+    if os.path.exists(settings_bloodhound["sharphound_path"]):
+        old_path = "<span style='color:#00ff00'>%s</span>" % settings_bloodhound["sharphound_path"]
     else:
-        old_path = "<span style='color:#ff6347'>%s</span>" % settings["sharphound_path"]
+        old_path = "<span style='color:#ff6347'>%s</span>" % settings_bloodhound["sharphound_path"]
     sharphound_settings_pane.replaceLabel(old_path, "<span style='color:#ffa07a'>%s</span>" % new_path)
-    settings["sharphound_path"] = new_path
+    settings_bloodhound["sharphound_path"] = new_path
 # the actual sharphound settings panel
 def open_sharphound_settings():
-    global settings
+    global settings_bloodhound
     sharphound_settings_pane.clear()
     sharphound_settings_pane.addLabel("<h3 style='color:#bd93f9'>Sharphound path:</h3>")
-    if os.path.exists(settings["sharphound_path"]):
-        sharphound_settings_pane.addLabel("<span style='color:#00ff00'>%s</span>" % settings["sharphound_path"])
+    if os.path.exists(settings_bloodhound["sharphound_path"]):
+        sharphound_settings_pane.addLabel("<span style='color:#00ff00'>%s</span>" % settings_bloodhound["sharphound_path"])
     else:
-        sharphound_settings_pane.addLabel("<span style='color:#ff6347'>%s</span>" % settings["sharphound_path"])
+        sharphound_settings_pane.addLabel("<span style='color:#ff6347'>%s</span>" % settings_bloodhound["sharphound_path"])
     sharphound_settings_pane.addButton("Change", change_sharphound_path)
     sharphound_settings_pane.addLabel("<h3 style='color:#bd93f9'>Sharphound settings:</h3>")
-    sharphound_settings_pane.addCheckbox("Activate optional arguments", get_arguments, settings["sharphound"]["args"])
-    sharphound_settings_pane.addLineedit(settings["sharphound"]["domain"], get_domain_sh)
-    sharphound_settings_pane.addCheckbox("Search Forests", get_search_forest, settings["sharphound"]["search_forest"])
+    sharphound_settings_pane.addCheckbox("Activate optional arguments", get_arguments, settings_bloodhound["sharphound"]["args"])
+    sharphound_settings_pane.addLineedit(settings_bloodhound["sharphound"]["domain"], get_domain_sh)
+    sharphound_settings_pane.addCheckbox("Search Forests", get_search_forest, settings_bloodhound["sharphound"]["search_forest"])
     sharphound_settings_pane.addButton("Save", save_settings)
     sharphound_settings_pane.setSmallTab()
 
@@ -224,7 +224,7 @@ def open_inspect():
 
 # The two command line functions
 def run_collector(demonID, *param):
-    if not os.path.exists(settings["sharphound_path"]):
+    if not os.path.exists(settings_bloodhound["sharphound_path"]):
         havocui.errormessage("the provided path for sharphound is wrong please navigate to the sharphound settings and select the appropriate binary...")
         return None
     demon = havoc.Demon(demonID)
@@ -262,7 +262,7 @@ if os.path.exists(conf_path):
     # find the settings path
     with open(conf_path, "r") as fp:
         # load the settings
-        settings = json.load(fp)
+        settings_bloodhound = json.load(fp)
 else:
     save_settings()
 
