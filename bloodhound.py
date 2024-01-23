@@ -17,12 +17,12 @@ import hmac, hashlib, datetime, requests, base64
 import zipfile
 import os, json
 
-current_dir = os.getcwd()
-install_path = "/data/extensions/havoc-bloodhound/"
+bloodhound_current_dir = os.getcwd()
+bloodhound_install_path = "/data/extensions/havoc-bloodhound/"
 
-while not os.path.exists(current_dir + install_path):
+while not os.path.exists(bloodhound_current_dir + bloodhound_install_path):
     # not installed through havoc-store so prompt for the path
-    install_path = ""
+    bloodhound_install_path = ""
     havocui.inputdialog("Install path", "Please enter your install path here for the module to work correctly:")
 
 # Global variables
@@ -30,13 +30,13 @@ search_dialog = havocui.Dialog("Search", True, 600, 150)
 bloodhound_settings_pane = havocui.Widget("BloodHound Settings", True)
 sharphound_settings_pane = havocui.Widget("SharpHound Settings", True)
 bloodhound_log_panel = havocui.Logger("BloodHound Logs")
-conf_path = current_dir + install_path + "settings.json"
+bh_conf_path = bloodhound_current_dir + bloodhound_install_path + "settings.json"
 search_value = ""
 settings_bloodhound = {
     "server_url": "http://localhost:8080",
     "api-key": "Enter key here",
     "api-id": "Enter id here",
-    "sharphound_path": os.path.join(current_dir, install_path, "SharpHound.exe"),
+    "sharphound_path": os.path.join(bloodhound_current_dir, bloodhound_install_path, "SharpHound.exe"),
     "sharphound": {
         "args": False,
         "domain": "template.domain",
@@ -101,8 +101,8 @@ def build_sharphound_command():
 # save the settings
 def save_settings():
     global settings_bloodhound
-    global conf_path
-    with open(conf_path, "w") as fp:
+    global bh_conf_path
+    with open(bh_conf_path, "w") as fp:
         # save the config
         json.dump(settings_bloodhound, fp)
 
@@ -234,8 +234,8 @@ def run_collector(demonID, *param):
 
 def upload_collected(demonID, *param):
     demon = havoc.Demon(demonID)
-    path_to_zip = current_dir + "/" + param[0] + "/Download/" + param[1].replace("\\", "/")
-    if not os.path.exists(current_dir + "/" + param[0] + "/Download/" + param[1].replace("\\", "/")):
+    path_to_zip = bloodhound_current_dir + "/" + param[0] + "/Download/" + param[1].replace("\\", "/")
+    if not os.path.exists(bloodhound_current_dir + "/" + param[0] + "/Download/" + param[1].replace("\\", "/")):
         TaskID = demon.ConsoleWrite(demon.CONSOLE_ERROR, "Could not find provided file")
         return TaskID
     demon.ConsoleWrite(demon.CONSOLE_INFO, "unzipping: %s" % path_to_zip)
@@ -258,9 +258,9 @@ def upload_collected(demonID, *param):
     return None
 
 # Handle the settings of the tool load / save
-if os.path.exists(conf_path):
+if os.path.exists(bh_conf_path):
     # find the settings path
-    with open(conf_path, "r") as fp:
+    with open(bh_conf_path, "r") as fp:
         # load the settings
         settings_bloodhound = json.load(fp)
 else:
