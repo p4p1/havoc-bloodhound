@@ -22,8 +22,8 @@ bloodhound_install_path = "/data/extensions/havoc-bloodhound/"
 
 while not os.path.exists(bloodhound_current_dir + bloodhound_install_path):
     # not installed through havoc-store so prompt for the path
-    bloodhound_install_path = ""
-    havocui.inputdialog("Install path", "Please enter your install path here for the module to work correctly:")
+    bloodhound_current_dir = ""
+    bloodhound_install_path = havocui.inputdialog("Install path", "Please enter your install path here for the module to work correctly:")
 
 # Global variables
 search_dialog = havocui.Dialog("Search", True, 600, 150)
